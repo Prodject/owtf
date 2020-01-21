@@ -2,22 +2,20 @@
  * Transactions
  */
 import React from 'react';
-import { Modal, ButtonGroup, Button, Alert, Glyphicon } from 'react-bootstrap';
-import { Grid, Panel, Col, Row, FormGroup, Form, ControlLabel, Nav, NavItem } from 'react-bootstrap';
+import {Pane} from 'evergreen-ui';
 import './style.scss';
-import FormControl from 'react-bootstrap/es/FormControl';
 import TransactionTable from './TransactionTable.js';
-import TransactionHeaders from './TransactionHeader.js';
+import TransactionHeader from './TransactionHeader.js';
 import TargetList from './TargetList.js';
 
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import {
-  makeSelectTargetsError,
-  makeSelectTargetsLoading,
+  makeSelectFetchError,
+  makeSelectFetchLoading,
   makeSelectFetchTargets,
-} from './selectors';
+} from '../TargetsPage/selectors';
 import {
   makeSelectTransactionsError,
   makeSelectTransactionsLoading,
@@ -33,9 +31,10 @@ import {
   makeSelectHrtResponseError,
   makeSelectHrtResponseLoading,
 } from './selectors';
-import { loadTargets, loadTransactions, loadTransaction, loadHrtResponse } from './actions';
+import { loadTargets } from '../TargetsPage/actions';
+import {loadTransactions, loadTransaction, loadHrtResponse } from './actions';
 
-class Transactions extends React.Component {
+export class Transactions extends React.Component {
   constructor(props, context) {
     super(props, context);
 
@@ -67,34 +66,38 @@ class Transactions extends React.Component {
   /* Function responsible for filling transaction table */
   getTransactions(target_id) {
     this.props.onFetchTransactions(target_id);
-    this.setState({
-      target_id: target_id,
-      transactionsData: this.props.transactions || [],
-      transactionHeaderData: {
-        id: '',
-        requestHeader: '',
-        responseHeader: '',
-        responseBody: '',
-      },
-      hrtResponse: '',
-    });
+    setTimeout(() => {
+      this.setState({
+        target_id: target_id,
+        transactionsData: this.props.transactions || [],
+        transactionHeaderData: {
+          id: '',
+          requestHeader: '',
+          responseHeader: '',
+          responseBody: '',
+        },
+        hrtResponse: '',
+      });
+    }, 500);
   }
 
   /* Function responsible for filling data TransactionHeaders and Body component */
   getTransactionsHeaders(target_id, transaction_id) {
     this.props.onFetchTransaction(target_id, transaction_id);
-    if (this.props.transaction) {
-      const transaction = this.props.transaction;
-      this.setState({
-        transactionHeaderData: {
-          id: transaction.id,
-          requestHeader: transaction.raw_request,
-          responseHeader: transaction.response_headers,
-          responseBody: transaction.response_body,
-        },
-        hrtResponse: '',
-      });
-    }
+    setTimeout(() => {
+      if (this.props.transaction) {
+        const transaction = this.props.transaction;
+        this.setState({
+          transactionHeaderData: {
+            id: transaction.id,
+            requestHeader: transaction.raw_request,
+            responseHeader: transaction.response_headers,
+            responseBody: transaction.response_body,
+          },
+          hrtResponse: '',
+        });
+      }
+    }, 500);
   }
 
   /* Function which is handling HRT (http request handler) for request translation.
@@ -104,9 +107,11 @@ class Transactions extends React.Component {
   */
   getHrtResponse(target_id, transaction_id, values) {
     this.props.onFetchHrtResponse(target_id, transaction_id, values);
-    if (this.props.hrtResponse) {
-      this.setState({ hrtResponse: this.props.hrtResponse })
-    }
+    setTimeout(() => {
+      if (this.props.hrtResponse) {
+        this.setState({ hrtResponse: this.props.hrtResponse })
+      }
+    }, 500);
   }
 
   componentDidMount() {
@@ -187,40 +192,39 @@ class Transactions extends React.Component {
       transactions: this.state.transactionsData,
     }
     return (
-      <Grid fluid={true}>
-        <Row>
-          <Col
-            id="left_panel"
-            style={{
-              width: this.state.widthTargetList.toString() + '%',
-            }}
-          >
-            <TargetList {...TargetListProps} />
-          </Col>
-          <Col
-            id="drag-left"
-            onMouseDown={e => this.handleMouseDown(e)}
-            onMouseUp={e => this.handleMouseUp(e)}
-          />
-          <Col
-            id="right_panel"
-            style={{
-              width: this.state.widthTable.toString() + '%',
-            }}
-          >
-            <Row>
-              {this.state.target_id !== 0
-                ? <TransactionTable {...TransactionTableProps} />
-                : null}
-            </Row>
-            <Row>
-              {this.state.target_id !== 0
-                ? <TransactionHeaders {...TransactionHeaderProps} />
-                : null}
-            </Row>
-          </Col>
-        </Row>
-      </Grid>
+      <Pane display="flex" flexDirection="row" data-test="transactionsComponent">
+        <Pane
+          id="left_panel"
+          style={{
+            width: this.state.widthTargetList.toString() + '%',
+          }}
+        >
+          <TargetList {...TargetListProps} />
+        </Pane>
+        <Pane
+          id="drag-left"
+          onMouseDown={e => this.handleMouseDown(e)}
+          onMouseUp={e => this.handleMouseUp(e)}
+        />
+        <Pane
+          flexDirection="column"
+          id="right_panel"
+          style={{
+            width: this.state.widthTable.toString() + '%',
+          }}
+        >
+          <Pane>
+            {this.state.target_id !== 0
+              ? <TransactionTable {...TransactionTableProps} />
+              : null}
+          </Pane>
+          <Pane>
+            {this.state.target_id !== 0
+              ? <TransactionHeader {...TransactionHeaderProps} />
+              : null}
+          </Pane>
+        </Pane>
+      </Pane>
     );
   }
 }
@@ -247,7 +251,7 @@ Transactions.propTypes = {
   hrtResponseLoading: PropTypes.bool,
   hrtResponseError: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
   hrtResponse: PropTypes.any,
-  onFetchTarget: PropTypes.func,
+  onFetchTargets: PropTypes.func,
   onFetchTransactions: PropTypes.func,
   onFetchTransaction: PropTypes.func,
   onFetchHrtResponse: PropTypes.func,
@@ -255,8 +259,8 @@ Transactions.propTypes = {
 
 const mapStateToProps = createStructuredSelector({
   targets: makeSelectFetchTargets,
-  targetsLoading: makeSelectTargetsLoading,
-  targetsError: makeSelectTargetsError,
+  targetsLoading: makeSelectFetchLoading,
+  targetsError: makeSelectFetchError,
 
   transactions: makeSelectFetchTransactions,
   transactionsLoading: makeSelectTransactionsLoading,
@@ -266,9 +270,9 @@ const mapStateToProps = createStructuredSelector({
   transactionLoading: makeSelectTransactionLoading,
   transactionError: makeSelectTransactionError,
 
-  hrtResponse: makeSelectFetchTransaction,
-  hrtResponseLoading: makeSelectTransactionLoading,
-  hrtResponseError: makeSelectTransactionError,
+  hrtResponse: makeSelectFetchHrtResponse,
+  hrtResponseLoading: makeSelectHrtResponseLoading,
+  hrtResponseError: makeSelectHrtResponseError,
 });
 
 const mapDispatchToProps = dispatch => {

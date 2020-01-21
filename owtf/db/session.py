@@ -15,6 +15,10 @@ from sqlalchemy.orm import sessionmaker
 from owtf.db.model_base import Model
 from owtf.settings import DATABASE_IP, DATABASE_NAME, DATABASE_PASS, DATABASE_USER, DATABASE_PORT
 
+DB_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
+    DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT, DATABASE_NAME
+)
+
 
 def get_count(q):
     count_q = q.statement.with_only_columns([func.count()]).order_by(None)
@@ -23,7 +27,6 @@ def get_count(q):
 
 
 def flush_transaction(method):
-
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         dryrun = kwargs.pop("dryrun", False)
@@ -45,16 +48,11 @@ def flush_transaction(method):
 
 def get_db_engine():
     try:
-        engine = create_engine(
-            "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
-                DATABASE_USER, DATABASE_PASS, DATABASE_IP, DATABASE_PORT, DATABASE_NAME
-            ),
-            pool_recycle=120,
-        )
+        engine = create_engine(DB_URI, pool_recycle=120)
         Model.metadata.create_all(engine)
         return engine
     except exc.OperationalError as e:
-        logging.error("Could not create database engine - Exception occured\n%s", str(e))
+        logging.error("Could not create engine - Exception occured\n%s", str(e))
         sys.exit(1)
 
 

@@ -1,12 +1,23 @@
 USER := $(shell whoami)
+PROJ=owtf
+PYTHON=python3
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
+VENV_PATH=$$HOME/.virtualenvs/${PROJ}
+
+.PHONY: venv setup web docs lint clean bump build release
 
 check-root:
 ifeq ($(USER), root)
 	@echo "WARNING: Installing as root should be avoided at all costs. Use a virtualenv."
 endif
 
+clean-pyc:
+	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm
+	-find . -type d -name "__pycache__" | xargs rm -r
+
+clean-build:
+	rm -rf build/ dist/ .eggs/ *.egg-info/ .tox/ .coverage cover/
 
 ### INSTALL
 
@@ -20,23 +31,30 @@ install-dependencies:
 
 opt-tools:
 	sudo apt-get install -y lbd gnutls-bin arachni o-saft metagoofil lbd arachni \
-                        theharvester tlssled nikto dnsrecon nmap whatweb skipfish \
-                        dirbuster metasploit-framework wpscan wapiti waffit hydra metagoofil o-saft
+	                        theharvester tlssled nikto dnsrecon nmap whatweb skipfish dirbuster metasploit-framework \
+	                        wpscan wapiti waffit hydra metagoofil o-saft
+
+venv:
+	@echo "Installing the virtualenv for OWTF"
+	rm -rf $(VENV_PATH)
+	$(PYTHON) -m venv $(VENV_PATH) --clear
 
 web-tools:
 	sudo apt-get install kali-linux-web
 
 activate-virtualenv:
-	pip install virtualenv
-	virtualenv ${HOME}/.venv/owtf
-	source "${HOME}/.venv/owtf/bin/activate"
+	source $(VENV_PATH)/bin/activate
+
+
+setup:  venv activate-virtualenv install-requirements
+
 
 ### REQUIREMENTS
 
 install-python-requirements: setup.py check-root
 	@echo "--> Installing Python development dependencies."
 	pip install setuptools
-	pip install -r requirements.txt
+	for f in `ls requirements/` ; do pip install -r requirements/$$f ; done
 
 install-ui-requirements:
 	@echo "--> Installing Node development dependencies."
@@ -65,17 +83,19 @@ docs:
 	@echo "--> Building docs"
 	cd docs/ && make html
 
-
-
 ### DOCKER
 
 docker-build:
 	@echo "--> Building the docker image for develop"
-	docker build -t owtf/owtf -f Dockerfile.dev .
+	docker build -t owtf/owtf -f docker/Dockerfile .
 
 docker-run:
 	@echo "--> Running the Docker development image"
 	docker run -it -p 8009:8009 -p 8008:8008 -p 8010:8010 -v $(current_dir):/owtf owtf/owtf /bin/bash
+
+compose:
+	@echo "--> Running the Docker Compose setup"
+	docker-compose -f docker/docker-compose.dev.yml up
 
 ### DEBIAN PACKAGING
 
@@ -143,3 +163,34 @@ distclean-js:
 
 distclean: distclean-py distclean-js
 
+## MAINTAINERS
+rollback:
+	git reset --hard HEAD~1
+	git tag -d `git describe --tags --abbrev=0`
+
+bump:
+	bumpversion patch && \
+	echo -n "Now on version: " && \
+	git describe --tags
+
+bump-minor:
+	bumpversion minor && \
+	echo -n "Now on version: " && \
+	git describe --tags
+
+bump-major:
+	bumpversion major && \
+	echo -n "Now on version: " && \
+	git describe --tags
+
+release:
+	python setup.py register sdist bdist_wheel upload
+
+build:
+	$(PYTHON) setup.py sdist bdist_wheel
+
+startdb:
+	docker-compose -p $(PROJ) -f docker/docker-compose.yml up -d --no-recreate
+
+stopdb:
+	docker-compose -p $(PROJ) -f docker/docker-compose.yml down

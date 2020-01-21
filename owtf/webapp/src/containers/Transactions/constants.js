@@ -5,18 +5,14 @@ export const TRANSACTION_HRT_URL = '/api/v1/targets/target_id/transactions/hrt/t
 export const TRANSACTION_API_URL = '/api/v1/targets/target_id/transactions/'
 export const TRANSACTION_ZCONSOLE_URL = '/ui/v1/targets/target_id/transactions/zconsole'
 
-export const LOAD_TARGETS = 'owtf/Targets/LOAD_TARGETS',
-    LOAD_TARGETS_SUCCESS = 'owtf/Targets/LOAD_TARGETS_SUCCESS',
-    LOAD_TARGETS_ERROR = 'owtf/Targets/LOAD_TARGETS_ERROR';
-
 export const LOAD_TRANSACTIONS = 'owtf/Transactions/LOAD_TRANSACTIONS',
     LOAD_TRANSACTIONS_SUCCESS = 'owtf/Transactions/LOAD_TRANSACTIONS_SUCCESS',
     LOAD_TRANSACTIONS_ERROR = 'owtf/Transactions/LOAD_TRANSACTIONS_ERROR';
 
-export const LOAD_TRANSACTION = 'owtf/Transaction/LOAD_TRANSACTION',
-    LOAD_TRANSACTION_SUCCESS = 'owtf/Transaction/LOAD_TRANSACTION_SUCCESS',
-    LOAD_TRANSACTION_ERROR = 'owtf/Transaction/LOAD_TRANSACTION_ERROR';
+export const LOAD_TRANSACTION = 'owtf/Transactions/LOAD_TRANSACTION',
+    LOAD_TRANSACTION_SUCCESS = 'owtf/Transactions/LOAD_TRANSACTION_SUCCESS',
+    LOAD_TRANSACTION_ERROR = 'owtf/Transactions/LOAD_TRANSACTION_ERROR';
 
-export const LOAD_HRT_RESPONSE = 'owtf/HrtResponse/LOAD_HRT_RESPONSE',
-    LOAD_HRT_RESPONSE_SUCCESS = 'owtf/HrtResponse/LOAD_HRT_RESPONSE_SUCCESS',
-    LOAD_HRT_RESPONSE_ERROR = 'owtf/HrtResponse/LOAD_HRT_RESPONSE_ERROR';
+export const LOAD_HRT_RESPONSE = 'owtf/Transactions/LOAD_HRT_RESPONSE',
+    LOAD_HRT_RESPONSE_SUCCESS = 'owtf/Transactions/LOAD_HRT_RESPONSE_SUCCESS',
+    LOAD_HRT_RESPONSE_ERROR = 'owtf/Transactions/LOAD_HRT_RESPONSE_ERROR';

@@ -2,9 +2,6 @@ import { fromJS } from 'immutable';
 import { combineReducers } from 'redux-immutable'; // combineReducers of 'redux' doesn't work with immutable.js
 
 import {
-  LOAD_TARGETS,
-  LOAD_TARGETS_SUCCESS,
-  LOAD_TARGETS_ERROR,
   LOAD_TRANSACTIONS,
   LOAD_TRANSACTIONS_SUCCESS,
   LOAD_TRANSACTIONS_ERROR,
@@ -16,34 +13,6 @@ import {
   LOAD_HRT_RESPONSE_ERROR,
 } from './constants';
 
-
-// The initial state of the targets.
-const initialTargetsState = fromJS({
-  loading: false,
-  error: false,
-  targets: false,
-});
-
-function targetsLoadReducer(state = initialTargetsState, action) {
-  switch (action.type) {
-    case LOAD_TARGETS:
-      return state
-        .set('loading', true)
-        .set('error', false)
-        .set('targets', false);
-    case LOAD_TARGETS_SUCCESS:
-      return state
-        .set('loading', false)
-        .set('targets', action.targetsData.data);
-    case LOAD_TARGETS_ERROR:
-      return state
-        .set('loading', false)
-        .set('error', action.error);
-    default:
-      return state;
-  }
-}
-
 // The initial state of the transactions.
 const initialTransactionsState = fromJS({
   loading: false,
@@ -51,7 +20,7 @@ const initialTransactionsState = fromJS({
   transactions: false,
 });
 
-function transactionsLoadReducer(state = initialTransactionsState, action) {
+export function transactionsLoadReducer(state = initialTransactionsState, action) {
   switch (action.type) {
     case LOAD_TRANSACTIONS:
       return state
@@ -61,11 +30,13 @@ function transactionsLoadReducer(state = initialTransactionsState, action) {
     case LOAD_TRANSACTIONS_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('transactions', action.transactions.data);
     case LOAD_TRANSACTIONS_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('transactions', false);
     default:
       return state;
   }
@@ -78,7 +49,7 @@ const initialTransactionState = fromJS({
   transaction: false,
 });
 
-function transactionLoadReducer(state = initialTransactionState, action) {
+export function transactionLoadReducer(state = initialTransactionState, action) {
   switch (action.type) {
     case LOAD_TRANSACTION:
       return state
@@ -88,11 +59,13 @@ function transactionLoadReducer(state = initialTransactionState, action) {
     case LOAD_TRANSACTION_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('transaction', action.transaction);
     case LOAD_TRANSACTION_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('transaction', false);
     default:
       return state;
   }
@@ -105,7 +78,7 @@ const initialHrtResponseState = fromJS({
   hrtResponse: false,
 });
 
-function hrtResponseLoadReducer(state = initialHrtResponseState, action) {
+export function hrtResponseLoadReducer(state = initialHrtResponseState, action) {
   switch (action.type) {
     case LOAD_HRT_RESPONSE:
       return state
@@ -115,18 +88,19 @@ function hrtResponseLoadReducer(state = initialHrtResponseState, action) {
     case LOAD_HRT_RESPONSE_SUCCESS:
       return state
         .set('loading', false)
+        .set('error', false)
         .set('hrtResponse', action.hrtResponse);
     case LOAD_HRT_RESPONSE_ERROR:
       return state
         .set('loading', false)
-        .set('error', action.error);
+        .set('error', action.error)
+        .set('hrtResponse', false);
     default:
       return state;
   }
 }
 
 export default combineReducers({
-  loadTargets: targetsLoadReducer,
   loadTransactions: transactionsLoadReducer,
   loadTransaction: transactionLoadReducer,
   loadHrtResponse: hrtResponseLoadReducer,
